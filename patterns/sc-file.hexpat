@@ -1,3 +1,4 @@
+#pragma description Supercell file
 #pragma magic [ 53 43 ] @ 0x00
 #pragma endian big
 
