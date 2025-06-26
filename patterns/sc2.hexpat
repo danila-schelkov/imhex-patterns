@@ -1,6 +1,8 @@
 #pragma description Supercell SWF flatbuffer file
 #pragma endian little
 
+#pragma pattern_limit 10485760
+
 import fbs;
 import std.io;
 import type.types.rust;
@@ -13,7 +15,7 @@ struct NestedFlatbuffer<Type> {
 
 struct Rect {
     f32 left, top, right, bottom;
-};
+} [[static]];
 
 struct MovieClipFrameElement {
     u16 child_index;
@@ -99,7 +101,7 @@ struct TextField {
     u8 font_size;
     u8 unused1;
     i32 unused2;
-};
+} [[static]];
 
 struct TextFields {
     RootTable table;
@@ -127,12 +129,45 @@ struct Shapes {
     OptionalPtr<Vector<Shape>, table, 0> shapes;
 };
 
+struct MovieClipFrame {
+    u32 frame_element_count;
+    u32 label_ref_id;
+} [[static]];
+
+struct MovieClipShortFrame {
+    u16 frame_element_count;
+} [[static]];
+
+struct MovieClip {
+    RootTable table;
+
+    Optional<u16, table, 0> id;
+    Optional<u32, table, 1> export_name_ref_id;
+    Optional<u8, table, 2> fps;
+    Optional<u16, table, 3> frame_count;
+    Optional<u8, table, 4> property;
+    OptionalPtr<Vector<u16>, table, 5> child_ids;
+    OptionalPtr<Vector<u32>, table, 6> child_name_ref_ids;
+    OptionalPtr<Vector<u8>, table, 7> child_blends;
+    OptionalPtr<Vector<MovieClipFrame>, table, 8> frames;
+    Optional<u32, table, 9> frame_element_offset;
+    Optional<u16, table, 10> matrix_bank_index;
+    Optional<u32, table, 11> scaling_grid_index;
+    OptionalPtr<Vector<MovieClipShortFrame>, table, 12> short_frames;
+};
+
+struct MovieClips {
+    RootTable table;
+
+    OptionalPtr<Vector<MovieClip>, table, 0> movie_clips;
+};
+
 struct SupercellSWF {
     NestedFlatbuffer<Resources> resources;
     NestedFlatbuffer<Exports> exports;
     NestedFlatbuffer<TextFields> text_fields;
     NestedFlatbuffer<Shapes> shapes;
-    // NestedFlatbuffer<MovieClips> movie_clips;
+    NestedFlatbuffer<MovieClips> movie_clips;
     // NestedFlatbuffer<MovieClipModifiers> movie_clip_modifiers;
     // NestedFlatbuffer<TextureSets> texture_sets;
 };
