@@ -173,6 +173,30 @@ struct MovieClipModifiers {
     OptionalPtr<Vector<MovieClipModifier>, table, 0> movie_clip_modifiers;
 };
 
+struct Texture {
+    RootTable table;
+
+    Optional<u8, table, 0> flags;
+    Optional<u8, table, 1> type;
+    Optional<u16, table, 2> width;
+    Optional<u16, table, 3> height;
+    OptionalPtr<Vector<u8>, table, 4> data;
+    Optional<u32, table, 5> texture_file_ref_id;
+};
+
+struct TextureSet {
+    RootTable table;
+
+    Optional<Texture, table, 0> lowres_texture;
+    Optional<Texture, table, 1> highres_texture;
+};
+
+struct TextureSets {
+    RootTable table;
+
+    OptionalPtr<Vector<TextureSet>, table, 0> texture_sets;
+};
+
 struct SupercellSWF {
     NestedFlatbuffer<Resources> resources;
     NestedFlatbuffer<Exports> exports;
@@ -180,7 +204,7 @@ struct SupercellSWF {
     NestedFlatbuffer<Shapes> shapes;
     NestedFlatbuffer<MovieClips> movie_clips;
     NestedFlatbuffer<MovieClipModifiers> movie_clip_modifiers;
-    // NestedFlatbuffer<TextureSets> texture_sets;
+    NestedFlatbuffer<TextureSets> texture_sets;
 };
 
 SupercellSWF swf @ 0x00;
