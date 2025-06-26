@@ -68,9 +68,13 @@ struct Vector<Type> {
     Type values[count];
 };
 
+// > https://flatbuffers.dev/schema/#strings
+// Strings are zero-terminated strings, prefixed by their length.
 struct String {
     u32 length;
+    // I prefer using length, but you may not, then remove length from []
     char content[length];
+    // padding[4 - $ % 4];  // structure alignment, commented for disabling highlight
 } [[format_read("format_string_read"), sealed]];
 
 fn format_string_read(ref String string) {
