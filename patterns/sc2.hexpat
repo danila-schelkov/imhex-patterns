@@ -3,8 +3,7 @@
 
 import fbs;
 import std.io;
-
-using f32 = float;
+import type.types.rust;
 
 struct NestedFlatbuffer<Type> {
     u32 size;
@@ -63,10 +62,55 @@ struct Exports {
     Optional<Ptr<Vector<u32>>, table, 1> export_name_ids;
 };
 
+struct RGBA8 {
+  u8 red   [[color("FF0000")]];
+  u8 green [[color("00FF00")]];
+  u8 blue  [[color("0000FF")]];
+  u8 alpha [[color("FFFFFF")]];
+} [[static, color(std::format("{:02X}{:02X}{:02X}", red, green, blue))]];
+
+bitfield TextFieldStyles {
+    useDeviceFont : 1;
+    isOutlineEnabled : 1;
+    isBold : 1;
+    isItalic : 1;
+    isMultiline : 1;
+    unkBoolean : 1;
+    autoAdjustFontSize : 1;
+};
+
+bitfield TextFieldAlignment {
+    // 0 - start, 1 - end, 2 - justify
+    horizontal : 3;  // 0 - left, 1 - right, 2 - justify
+    vertical : 3;  // 0 - top, 1 - bottom, 2 - justify
+};
+
+struct TextField {
+    u16 id;
+    u16 unused0;
+    i32 font_name_ref_id;
+    i16 left, top, right, bottom;
+    RGBA8 color;
+    RGBA8 outline_color;
+    i32 default_text_ref_id;
+    i32 another_text_ref_id;
+    TextFieldStyles styles;
+    TextFieldAlignment align;
+    u8 font_size;
+    u8 unused1;
+    i32 unused2;
+};
+
+struct TextFields {
+    RootTable table;
+
+    Optional<Ptr<Vector<TextField>>, table, 0> text_fields;
+};
+
 struct SupercellSWF {
     NestedFlatbuffer<Resources> resources;
     NestedFlatbuffer<Exports> exports;
-    // NestedFlatbuffer<TextFields> text_fields;
+    NestedFlatbuffer<TextFields> text_fields;
     // NestedFlatbuffer<Shapes> shapes;
     // NestedFlatbuffer<MovieClips> movie_clips;
     // NestedFlatbuffer<MovieClipModifiers> movie_clip_modifiers;
