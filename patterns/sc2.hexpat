@@ -32,7 +32,7 @@ struct Rect {
 struct MovieClipFrameElement {
     u16 child_index;
     u16 matrix_index;
-    u16 colorTransform_index;
+    u16 color_transform_index;
 } [[static]];
 
 struct ShapePoint {
