@@ -32,8 +32,12 @@ struct Matrix2x3 {
     f32 a, b, c, d, x, y;
 } [[static]];
 
+struct ShortMatrix2x3 {
+    i16 a, b, c, d, x, y;
+} [[static]];
+
 struct ColorTransform {
-    u8 ra, ga, ba, a, r, g, b;
+    u8 r, g, b, a, ra, ga, ba;
 } [[static]];
 
 struct MatrixBank {
@@ -41,7 +45,7 @@ struct MatrixBank {
 
     OptionalPtr<Vector<Matrix2x3>, table, 0> matrices;
     OptionalPtr<Vector<ColorTransform>, table, 1> color_transforms;
-    // Optional<Vector<String>, table, 2> short_matrices;
+    OptionalPtr<Vector<ShortMatrix2x3>, table, 2> short_matrices;
 };
 
 // Actually, "interners"
