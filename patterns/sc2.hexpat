@@ -185,7 +185,7 @@ struct Texture {
     Optional<u16, table, 2> width;
     Optional<u16, table, 3> height;
     OptionalPtr<Vector<u8>, table, 4> data;
-    Optional<u32, table, 5> texture_file_ref_id;
+    OptionalPtr<String, table, 5> external_texture_filename;
 };
 
 struct TextureSet {
