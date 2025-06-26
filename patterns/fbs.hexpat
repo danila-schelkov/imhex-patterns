@@ -1,3 +1,4 @@
+
 import std.limits;
 
 struct VTable {
@@ -41,15 +42,29 @@ fn format_optional_read(ref auto optional) {
     return std::format("{}", optional.value);
 };
 
+struct Ptr<Type> {
+    u32 offset;
+    Type value @ addressof(offset) + offset;
+} [[format_read("format_ptr_read")]];
+
+fn format_ptr_read(ref Ptr<auto> ptr) {
+    return ptr.value;
+};
+
 struct OptionalPtr<Type, auto Table, auto Index> {
     u64 field_address = get_field_address(Table, Index);
     if (field_address != std::limits::u64_max()) {
-        u32 offset @ field_address [[hidden]];
-        Type value @ addressof(offset) + offset [[inline]];
+        Ptr<Type> value @ field_address [[inline]];
     }
+};
+
+struct ResizedVector<Type, auto SizeDiv> {
+    u32 count;
+    Type values[count / SizeDiv];
 };
 
 struct Vector<Type> {
     u32 count;
     Type values[count];
 };
+
