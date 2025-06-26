@@ -1,3 +1,4 @@
+import std.limits;
 
 struct VTable {
     u16 vtable_size;  // starting from here
@@ -44,7 +45,7 @@ struct OptionalPtr<Type, auto Table, auto Index> {
     u64 field_address = get_field_address(Table, Index);
     if (field_address != std::limits::u64_max()) {
         u32 offset @ field_address [[hidden]];
-        Type value @ addressof(offset) + offset;
+        Type value @ addressof(offset) + offset [[inline]];
     }
 };
 
