@@ -162,13 +162,24 @@ struct MovieClips {
     OptionalPtr<Vector<MovieClip>, table, 0> movie_clips;
 };
 
+struct MovieClipModifier {
+    u16 id;
+    u16 type;
+} [[static]];
+
+struct MovieClipModifiers {
+    RootTable table;
+
+    OptionalPtr<Vector<MovieClipModifier>, table, 0> movie_clip_modifiers;
+};
+
 struct SupercellSWF {
     NestedFlatbuffer<Resources> resources;
     NestedFlatbuffer<Exports> exports;
     NestedFlatbuffer<TextFields> text_fields;
     NestedFlatbuffer<Shapes> shapes;
     NestedFlatbuffer<MovieClips> movie_clips;
-    // NestedFlatbuffer<MovieClipModifiers> movie_clip_modifiers;
+    NestedFlatbuffer<MovieClipModifiers> movie_clip_modifiers;
     // NestedFlatbuffer<TextureSets> texture_sets;
 };
 
