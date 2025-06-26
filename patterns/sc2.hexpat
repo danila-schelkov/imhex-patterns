@@ -56,8 +56,21 @@ struct Resources {
     OptionalPtr<Vector<MatrixBank>, table, 6> matrix_banks;
 };
 
+struct Exports {
+    RootTable table;
+
+    Optional<Ptr<Vector<u16>>, table, 0> export_ids;
+    Optional<Ptr<Vector<u32>>, table, 1> export_name_ids;
+};
+
 struct SupercellSWF {
     NestedFlatbuffer<Resources> resources;
+    NestedFlatbuffer<Exports> exports;
+    // NestedFlatbuffer<TextFields> text_fields;
+    // NestedFlatbuffer<Shapes> shapes;
+    // NestedFlatbuffer<MovieClips> movie_clips;
+    // NestedFlatbuffer<MovieClipModifiers> movie_clip_modifiers;
+    // NestedFlatbuffer<TextureSets> texture_sets;
 };
 
 SupercellSWF swf @ 0x00;
