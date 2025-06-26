@@ -37,8 +37,8 @@ struct ColorTransform {
 struct MatrixBank {
     RootTable table;
 
-    Optional<Vector<Matrix2x3>, table, 0> matrices;
-    Optional<Vector<ColorTransform>, table, 1> color_transforms;
+    OptionalPtr<Vector<Matrix2x3>, table, 0> matrices;
+    OptionalPtr<Vector<ColorTransform>, table, 1> color_transforms;
     // Optional<Vector<String>, table, 2> short_matrices;
 };
 
@@ -58,8 +58,8 @@ struct Resources {
 struct Exports {
     RootTable table;
 
-    Optional<Ptr<Vector<u16>>, table, 0> export_ids;
-    Optional<Ptr<Vector<u32>>, table, 1> export_name_ids;
+    OptionalPtr<Vector<u16>, table, 0> export_ids;
+    OptionalPtr<Vector<u32>, table, 1> export_name_ids;
 };
 
 struct RGBA8 {
@@ -104,14 +104,34 @@ struct TextField {
 struct TextFields {
     RootTable table;
 
-    Optional<Ptr<Vector<TextField>>, table, 0> text_fields;
+    OptionalPtr<Vector<TextField>, table, 0> text_fields;
+};
+
+struct ShapeDrawBitmapCommand {
+    u32 unknown;
+    u32 texture_index;
+    u32 point_count;
+    u32 starting_point_index;
+} [[static]];
+
+struct Shape {
+    RootTable table;
+
+    Optional<u16, table, 0> id;
+    OptionalPtr<Vector<ShapeDrawBitmapCommand>, table, 1> shapes;
+};
+
+struct Shapes {
+    RootTable table;
+
+    OptionalPtr<Vector<Shape>, table, 0> shapes;
 };
 
 struct SupercellSWF {
     NestedFlatbuffer<Resources> resources;
     NestedFlatbuffer<Exports> exports;
     NestedFlatbuffer<TextFields> text_fields;
-    // NestedFlatbuffer<Shapes> shapes;
+    NestedFlatbuffer<Shapes> shapes;
     // NestedFlatbuffer<MovieClips> movie_clips;
     // NestedFlatbuffer<MovieClipModifiers> movie_clip_modifiers;
     // NestedFlatbuffer<TextureSets> texture_sets;
