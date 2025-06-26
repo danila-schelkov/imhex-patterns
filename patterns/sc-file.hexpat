@@ -13,20 +13,6 @@ import * from zstd as Zstd;
 bool evaluate_decompression in;
 bool export_section in;
 
-fn relative_to_table(u128 offset) {
-    std::print("{} {}\n", addressof(parent), addressof(parent) - offset);
-    return addressof(parent) - offset;
-};
-
-struct String {
-    u32 length;
-    char content[length];
-} [[format_read("format_string_read"), sealed]];
-
-fn format_string_read(ref String string) {
-    return std::format("{}", string.content);
-};
-
 struct Export {
     RootTable table;
     

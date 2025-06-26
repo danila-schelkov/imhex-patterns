@@ -58,9 +58,9 @@ struct OptionalPtr<Type, auto Table, auto Index> {
     }
 };
 
-struct ResizedVector<Type, auto SizeDiv> {
+struct ReinterpretVector<InitialType, WantedType> {
     u32 count;
-    Type values[count / SizeDiv];
+    WantedType values[count / (sizeof(WantedType) / sizeof(InitialType))];
 };
 
 struct Vector<Type> {
@@ -68,3 +68,15 @@ struct Vector<Type> {
     Type values[count];
 };
 
+struct String {
+    u32 length;
+    char content[length];
+} [[format_read("format_string_read"), sealed]];
+
+fn format_string_read(ref String string) {
+    if (string.length == 0) {
+        return "";
+    }
+
+    return std::format("{}", string.content);
+};
