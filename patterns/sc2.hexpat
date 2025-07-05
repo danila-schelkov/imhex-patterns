@@ -7,12 +7,6 @@ import fbs;
 import std.io;
 import type.types.rust;
 
-struct NestedFlatbuffer<Type> {
-    u32 size;
-    Type value [[inline]];
-    padding[size - sizeof(value)];
-};
-
 struct Rect {
     f32 left, top, right, bottom;
 } [[static]];

@@ -42,6 +42,30 @@ struct Metadata {
     Optional<u32, table, 12> matrices_size;
 };
 
+struct ExternalMatrixBank {
+    RootTable table;
+    
+    Optional<u32, table, 0> index;
+    Optional<u32, table, 1> offset;  // compressed_offset
+    Optional<u32, table, 2> size;  // compressed_size
+    Optional<u32, table, 3> decompressed_size;
+    Optional<u32, table, 4> u5;  // count of zeros
+    Optional<u32, table, 5> u6;
+    Optional<u32, table, 6> matrix_count;
+    Optional<u32, table, 7> short_martix_count;
+    Optional<u32, table, 8> color_transform_count;
+    Optional<u32, table, 9> u10;  // some offset, same as decompressed_size
+    Optional<u32, table, 10> u11;
+    Optional<u32, table, 11> u12;
+    Optional<u32, table, 12> always_10;  // always 10
+};
+
+struct ExternalMatrixBanks {
+    RootTable table;
+    
+    OptionalPtr<Vector<ExternalMatrixBank>, table, 0> matrix_banks;
+};
+
 struct ScFile {
     type::Magic<"SC"> magic;
     u32 version;
@@ -63,13 +87,7 @@ struct ScFile {
         u32 hash_length;
         u8 hash[hash_length];
     } else {
-        u32 size;
-        
-        // Note: fixed_size attribute doesn't pad the cursor, 
-        // so I have to manually move it using padding expression
-        // TODO: maybe export as section instead
-        Metadata metadata;
-        padding[size - sizeof(metadata)];
+        NestedFlatbuffer<Metadata> metadata;
     }
     
     if (evaluate_decompression) {
@@ -89,8 +107,15 @@ struct ScFile {
                 // SupercellSWF swf @ 0x00 in decompressedSection;
             }
         #endif
-       }
-   }
+        }
+    } else {
+        // TODO: run only if metadata exists (version is compatible)
+        padding[metadata.value.compressed_size.value];
+    }
+    
+    NestedFlatbuffer<ExternalMatrixBanks> external_matrix_banks;
+    
+    std::print("{}", external_matrix_banks.value.matrix_banks.value);
 };
 
 ScFile file @ 0x00;

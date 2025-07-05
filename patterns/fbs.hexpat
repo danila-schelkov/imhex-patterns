@@ -14,7 +14,7 @@ struct RootTable {
     VTable vtable @ addressof(vtable_offset_offset) + vtable_offset_offset - vtable_offset;
 };
 
-fn get_field_address(ref RootTable table, u32 field_index) {
+fn get_field_address(ref RootTable table, u32 field_index, u64 default_offset) {
     if (table.vtable.field_count <= field_index) {
         return std::limits::u64_max();
     }
@@ -27,20 +27,26 @@ fn get_field_address(ref RootTable table, u32 field_index) {
     return addressof(table.vtable_offset) + field_offset;
 };
 
-struct Optional<Type, auto Table, auto Index> {
-    u64 field_address = get_field_address(Table, Index);
+struct Field<Type, auto Table, auto Index, auto DefaultValue> {
+    bool has_default = DefaultValue != std::limits::u64_max();
+
+    u64 field_address = get_field_address(Table, Index, DefaultValue);
     if (field_address != std::limits::u64_max()) {
         Type value @ field_address;
+    } else if (has_default) {
+        Type value = DefaultValue;
     }
-} [[format_read("format_optional_read")]];
+} [[format_read("format_field_read")]];
 
-fn format_optional_read(ref auto optional) {
-    if (optional.field_address == std::limits::u64_max()) {
+fn format_field_read(ref auto field) {
+    if (field.field_address == std::limits::u64_max() && !field.has_default) {
         return "undefined";
     }
 
-    return std::format("{}", optional.value);
+    return std::format("{}", field.value);
 };
+
+using Optional<Type, auto Table, auto Index> = Field<Type, Table, Index, std::limits::u64_max()>;
 
 struct Ptr<Type> {
     u32 offset;
@@ -51,12 +57,14 @@ fn format_ptr_read(ref Ptr<auto> ptr) {
     return ptr.value;
 };
 
-struct OptionalPtr<Type, auto Table, auto Index> {
-    u64 field_address = get_field_address(Table, Index);
+struct FieldPtr<Type, auto Table, auto Index, auto DefaultValue> {
+    u64 field_address = get_field_address(Table, Index, DefaultValue);
     if (field_address != std::limits::u64_max()) {
         Ptr<Type> value @ field_address [[inline]];
     }
 };
+
+using OptionalPtr<Type, auto Table, auto Index> = FieldPtr<Type, Table, Index, std::limits::u64_max()>;
 
 struct ReinterpretVector<InitialType, WantedType> {
     u32 count;
@@ -83,4 +91,13 @@ fn format_string_read(ref String string) {
     }
 
     return std::format("{}", string.content);
+};
+
+// Note: fixed_size attribute doesn't pad the cursor, 
+// so I have to manually move it using padding expression
+// TODO: maybe export as section instead
+struct NestedFlatbuffer<Type> {
+    u32 size;
+    Type value [[inline]];
+    padding[size - sizeof(value)];
 };
