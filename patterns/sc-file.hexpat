@@ -26,7 +26,6 @@ fn format_export(ref Export export) {
 
 struct Metadata {
     RootTable table;
-    std::print("{}", addressof(table.vtable));
     
     Optional<u32, table, 0> translation_precision;
     Optional<u32, table, 1> scale_precision;
@@ -47,9 +46,9 @@ struct ScFile {
     type::Magic<"SC"> magic;
     u32 version;
     if (version == 4) {
-        u32 compressionType;
+        u32 compression_type;
     } else {
-        u32 compressionType = version;
+        u32 compression_type = version;
     }
 
     if (version > 4) {
@@ -74,7 +73,7 @@ struct ScFile {
     }
     
     if (evaluate_decompression) {
-        if (compressionType == 1) {
+        if (compression_type == 1) {
             // todo: lzma
         } else {
             Zstd zstd;
@@ -82,11 +81,12 @@ struct ScFile {
         #ifdef __IMHEX__
             if (export_section) {
                 // From https://github.com/WerWolv/ImHex-Patterns/blob/0b753366383ef2dac479581d9fb12c4d6802a992/patterns/blend.hexpat#L182
-                std::mem::Section decompressedSection = std::mem::create_section("decompressed");
-                std::assert(hex::dec::zstd_decompress(zstd, decompressedSection), "Decompression failed!");
+                std::mem::Section decompressed_section = std::mem::create_section("decompressed");
+                std::assert(hex::dec::zstd_decompress(zstd, decompressed_section), "Decompression failed!");
                 
-                u128 currentSectionSize = std::mem::get_section_size(decompressedSection);
-                u8 decompressed[currentSectionSize] @ 0x00 in decompressedSection;
+                u128 current_section_size = std::mem::get_section_size(decompressed_section);
+                u8 decompressed[current_section_size] @ 0x00 in decompressed_section;
+                // SupercellSWF swf @ 0x00 in decompressedSection;
             }
         #endif
        }
