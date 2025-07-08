@@ -6,8 +6,11 @@
     import hex.dec;
 #endif
 
+#pragma pattern_limit 10485760
+
 import fbs;
 import type.magic;
+import std.mem;
 import * from zstd as Zstd;
 
 bool evaluate_decompression in;
@@ -46,24 +49,55 @@ struct ExternalMatrixBank {
     RootTable table;
     
     Optional<u32, table, 0> index;
-    Optional<u32, table, 1> offset;  // compressed_offset
+    Field<u32, table, 1, 0> offset;  // compressed_offset
     Optional<u32, table, 2> size;  // compressed_size
     Optional<u32, table, 3> decompressed_size;
     Optional<u32, table, 4> u5;  // count of zeros
     Optional<u32, table, 5> u6;
-    Optional<u32, table, 6> matrix_count;
-    Optional<u32, table, 7> short_martix_count;
+    Optional<u32, table, 6> short_matrix_count;
+    Optional<u32, table, 7> float_matrix_count;
     Optional<u32, table, 8> color_transform_count;
     Optional<u32, table, 9> u10;  // some offset, same as decompressed_size
     Optional<u32, table, 10> u11;
-    Optional<u32, table, 11> u12;
-    Optional<u32, table, 12> always_10;  // always 10
+    Optional<u32, table, 11> u12;  // something like load immediately
+    Optional<u32, table, 12> always_10;  // always 10, 21 in lib if u12 is set
 };
 
 struct ExternalMatrixBanks {
     RootTable table;
     
     OptionalPtr<Vector<ExternalMatrixBank>, table, 0> matrix_banks;
+};
+
+u32 index = 0;
+
+struct ExternalMatrixBankContent<auto MatrixBankVector> {
+    Zstd zstd @ $ + MatrixBankVector.values[index].offset.value [[inline]];
+    
+#ifdef __IMHEX__
+    if (export_section) {
+        // From https://github.com/WerWolv/ImHex-Patterns/blob/0b753366383ef2dac479581d9fb12c4d6802a992/patterns/blend.hexpat#L182
+        std::mem::Section decompressed_section = std::mem::create_section("decompressed");
+        std::assert(hex::dec::zstd_decompress(zstd, decompressed_section), "Decompression failed!");
+        
+        u128 current_section_size = std::mem::get_section_size(decompressed_section);
+        u8 decompressed[current_section_size] @ 0x00 in decompressed_section;
+    }
+#endif
+    
+    // last block
+    // matrix2x3 - 7th field is count (f32 x6 (abcdxy))
+    // unk zeros 4th (from zero) field (f32 or u32/i32 or u8 x4)
+    // short matrices
+    // 8 extra zeros
+    // color transforms
+    // align bytes
+    
+    index += 1;
+    
+    if (index >= MatrixBankVector.count) {
+        break;
+    }
 };
 
 struct ScFile {
@@ -113,9 +147,14 @@ struct ScFile {
         padding[metadata.value.compressed_size.value];
     }
     
-    NestedFlatbuffer<ExternalMatrixBanks> external_matrix_banks;
-    
-    std::print("{}", external_matrix_banks.value.matrix_banks.value);
+    if (metadata.value.matrices_size.field_address != std::limits::u64_max()) {
+        NestedFlatbuffer<ExternalMatrixBanks> external_matrix_banks;
+        
+        if (evaluate_decompression) {
+            // solution, but pretty bad
+            ExternalMatrixBankContent<external_matrix_banks.value.matrix_banks.value.value> content[while(!std::mem::eof())];
+        }
+    }
 };
 
 ScFile file @ 0x00;

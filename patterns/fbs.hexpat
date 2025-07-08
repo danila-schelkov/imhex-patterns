@@ -1,5 +1,14 @@
-
 import std.limits;
+import type.types.rust;
+
+struct Ptr<Type> {
+    u32 offset;
+    Type value @ addressof(offset) + offset;
+} [[format_read("format_ptr_read")]];
+
+fn format_ptr_read(ref Ptr<auto> ptr) {
+    return ptr.value;
+};
 
 struct VTable {
     u16 vtable_size;  // starting from here
@@ -9,9 +18,8 @@ struct VTable {
 };
 
 struct RootTable {
-    u32 vtable_offset_offset; 
-    s32 vtable_offset @ addressof(vtable_offset_offset) + vtable_offset_offset;
-    VTable vtable @ addressof(vtable_offset_offset) + vtable_offset_offset - vtable_offset;
+    Ptr<i32> vtable_offset;
+    VTable vtable @ addressof(vtable_offset.value) - vtable_offset.value;
 };
 
 fn get_field_address(ref RootTable table, u32 field_index, u64 default_offset) {
@@ -24,7 +32,7 @@ fn get_field_address(ref RootTable table, u32 field_index, u64 default_offset) {
         return std::limits::u64_max();
     }
 
-    return addressof(table.vtable_offset) + field_offset;
+    return addressof(table.vtable_offset.value) + field_offset;
 };
 
 struct Field<Type, auto Table, auto Index, auto DefaultValue> {
@@ -47,15 +55,6 @@ fn format_field_read(ref auto field) {
 };
 
 using Optional<Type, auto Table, auto Index> = Field<Type, Table, Index, std::limits::u64_max()>;
-
-struct Ptr<Type> {
-    u32 offset;
-    Type value @ addressof(offset) + offset;
-} [[format_read("format_ptr_read")]];
-
-fn format_ptr_read(ref Ptr<auto> ptr) {
-    return ptr.value;
-};
 
 struct FieldPtr<Type, auto Table, auto Index, auto DefaultValue> {
     u64 field_address = get_field_address(Table, Index, DefaultValue);
